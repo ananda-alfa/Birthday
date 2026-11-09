@@ -90,6 +90,30 @@ Browser memang melarang musik berputar otomatis sebelum ada interaksi.
 Semua teks ada di `novi.blade.php`, dikelompokkan per section (lihat komentar `SECTION 1` … `SECTION 7`).
 Label tombol Next per halaman ada di atribut `data-next-label` pada tiap `<section>`.
 
+## Online lewat GitHub Pages (gratis)
+
+Link: **https://ananda-alfa.github.io/Birthday/**
+
+Folder `docs/` berisi versi HTML statis yang dibaca GitHub Pages. Di versi ini gacha diundi di browser Novi,
+dikunci di browser itu (refresh tidak mengubah hasil), dan **tidak tercatat di server**. Novi diminta mengirim screenshot.
+
+Aktifkan sekali saja:
+
+1. Repo harus **Public** (Pages untuk repo private butuh akun GitHub berbayar):
+   Settings → General → Danger Zone → Change visibility → Public.
+2. Settings → Pages → *Build and deployment* → Source: **Deploy from a branch** →
+   Branch: **main**, folder: **/docs** → Save.
+3. Tunggu 1–3 menit, lalu buka linknya.
+
+**Setiap kali mengubah sesuatu** (foto, musik, teks, hadiah), build ulang lalu push:
+
+```bash
+php artisan birthday:build-static
+git add -A
+git commit -m "Update website"
+git push
+```
+
 ## Deploy ke hosting
 
 - Butuh hosting yang menjalankan PHP/Laravel, karena gacha memakai server. Jalankan `php artisan migrate` (tabel session) dan pastikan folder `storage/` bisa ditulisi.

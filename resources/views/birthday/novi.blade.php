@@ -25,11 +25,14 @@
     ];
     $totalChapters = count($chapters);
 
+    // true saat dirender oleh `php artisan birthday:build-static` (versi GitHub Pages, tanpa server)
+    $staticBuild = $staticBuild ?? false;
+
     $giftOptions = BirthdayGift::options();
     $giftData = [
         'options' => $giftOptions,
-        'choice' => BirthdayGift::current(),
-        'url' => route('birthday.novi.gift'),
+        'choice' => $staticBuild ? null : BirthdayGift::current(),
+        'url' => $staticBuild ? null : route('birthday.novi.gift'),
     ];
     $giftBoxColors = [
         ['#F8BBD0', '#EFA3BD', '#C65F85'],
@@ -47,7 +50,9 @@
     <meta name="description" content="Sebuah hadiah kecil, dibuat dengan penuh cinta untuk Novi.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#F8BBD0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @unless ($staticBuild)
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+    @endunless
 
     <meta property="og:type" content="website">
     <meta property="og:title" content="Happy Birthday, Novi ♡">

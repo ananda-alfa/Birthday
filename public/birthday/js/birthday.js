@@ -707,16 +707,42 @@
             state = 'picking';
         };
 
+        // Without a server (GitHub Pages) the draw happens here and is locked in this browser.
+        const STORAGE_KEY = 'novi-birthday-gift';
+
+        const isValidResult = (result) => Boolean(result)
+            && giftByKey.has(result.gift)
+            && Array.isArray(result.arrangement)
+            && result.arrangement.length === boxes.length;
+
+        const readLocalResult = () => {
+            try {
+                const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
+                return isValidResult(stored) ? stored : null;
+            } catch {
+                return null;
+            }
+        };
+
         const localDraw = (box) => {
             const arrangement = options.map((gift) => gift.key);
             for (let index = arrangement.length - 1; index > 0; index -= 1) {
                 const swapWith = Math.floor(Math.random() * (index + 1));
                 [arrangement[index], arrangement[swapWith]] = [arrangement[swapWith], arrangement[index]];
             }
-            return { box, gift: arrangement[box], arrangement, saved: false };
+
+            const result = { box, gift: arrangement[box], arrangement, saved: false };
+            try {
+                window.localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
+            } catch {
+                // private mode without storage: the result simply isn't remembered
+            }
+            return result;
         };
 
         const requestPick = async (box) => {
+            if (!url) return localDraw(box);
+
             try {
                 const token = $('meta[name="csrf-token"]');
                 const response = await fetch(url, {
@@ -733,12 +759,9 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
                 const result = await response.json();
-                const valid = giftByKey.has(result.gift)
-                    && Array.isArray(result.arrangement)
-                    && result.arrangement.length === boxes.length;
-                return valid ? { ...result, saved: true } : localDraw(box);
+                return isValidResult(result) ? { ...result, saved: true } : localDraw(box);
             } catch {
-                // Server unreachable (e.g. static hosting): still let her open a gift.
+                // Server unreachable: still let her open a gift.
                 return localDraw(box);
             }
         };
@@ -775,7 +798,8 @@
         boxes.forEach((box) => box.addEventListener('click', () => openBox(box)));
         showAgainButton.addEventListener('click', () => { if (modal) modal.show(); });
 
-        if (choice && giftByKey.has(choice.gift)) finish(choice);
+        const previous = isValidResult(choice) ? choice : readLocalResult();
+        if (previous) finish(previous);
     }
 
     /* ---------- Finale ---------- */
